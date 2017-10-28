@@ -27,7 +27,10 @@ var moment = require("moment")
 
 var imageDir = "/home/sairam/Desktop/chemnitz/C/ChemnitzHackt2017/src/uploads/";
 
-var coordinates = []
+var coordinates = {
+	locations:[],
+	warn:[]
+}
 
 function between(x, min, max) {
     return x >= min && x <= max;
@@ -106,12 +109,12 @@ app.post('/uploadImage', function(req, res) {
                             new ExifImage({ image: image_name }, function(error, exifData) {
                                     if (error) {
                                         console.log('Error: ' + error.message);
-                                        var image = "png"
+                                        var imageType = "png"
                                     } else {
                                         console.log(exifData);
                                     }
 
-                                    if (!image) {
+                                    if (!imageType) {
                                         var lat = exifData.gps.GPSLatitude;
                                         var lon = exifData.gps.GPSLongitude;
                                         var dateTime = exifData.exif.DateTimeOriginal
@@ -127,16 +130,20 @@ app.post('/uploadImage', function(req, res) {
                                             datetime: dateTime,
                                             imageName:file_name
                                         };
-                                        coordinates.push(lat_long_time)
+                                        coordinates.locations.push(lat_long_time)
+                                        coordinates.warn.push("false")
+
     									console.log(coordinates)
 
     									sendMail(lat,lon,dateTime,file_name)
-
 
     									res.end(JSON.stringify(coordinates))
 
                                 } else {
                                     console.log("No gps coordinates available for the image")
+                                    coordinates.warn.push("true")
+                                    res.end(JSON.stringify(coordinates))
+                                
                                 }
                             });
                     } catch (error) {
@@ -152,14 +159,17 @@ app.post('/uploadImage', function(req, res) {
 });
 
 
-
-
 app.get("/getMapCoordinates", function(req, res) {
+	console.log('getMapCoordinates');
     res.json(coordinates)
 });
 
 
-
+app.get("/reset", function(req, res) {
+	console.log('reset');
+	 coordinates.warn.push("false")
+    res.end(JSON.stringify(coordinates))
+});
 
 
 

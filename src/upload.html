@@ -14,6 +14,7 @@
     <script src="bootstrap/dist/js/jquery-3.0.0.min.js"></script>
     <script>
     function myMap() {
+    var warning="Uploaded image has no gps coordinates available for the image, please turn on geo-tagging in your device and upload again"
 
        $.ajax({
         url: '/getMapCoordinates',
@@ -29,17 +30,43 @@
             });
             //console.log(data)
             console.log(data.responseJSON)
-            var locations = data.responseJSON
+            var locations = data.responseJSON.locations
+            var warns = data.responseJSON.warn
+            console.log(warns.length-1)
+
+            if (warns[warns.length-1] =="true"){
+                alert(warning)
+                console.log("warning")
+
+            }
+
+            else{
             for (i = 0; i < locations.length; i++) {
                 marker = new google.maps.Marker({
                     position: new google.maps.LatLng(locations[i].latitude, locations[i].longitude),
                     map: map
                 });
-            }
+            }}
         }
     });
     }
-    
+
+
+    function reset(){
+        $.ajax({
+        url: '/reset',
+        type: "GET",
+        cache: false,
+        async: "true",
+        complete: function(data) {
+            console.log('received reset');
+            myMap()
+          
+        }
+    });
+
+    }
+
     </script>
 
     <link rel="stylesheet" type="text/css" href="stylesheet.css" />
@@ -85,6 +112,7 @@
                             <div id="progress-bar1" class="progress-bar" role="progressbar"></div>
                         </div>
                         <button class="btn btn-lg button1" type="button">Upload</button>
+                        <button class="btn btn-default" onclick="reset()" type="button">Reset</button>
                     </div>
                     <input id="upload-input_image" type="file" name="uploads_image[]" multiple="multiple" accept="image/jpeg, image/png">
                     </br>
