@@ -25,8 +25,9 @@ var ExifImage = require('exif').ExifImage;
 
 /* Image directories used for uploding and retrieving images */
 
-var imageDir = "/home/sairam/Desktop/chemnitz/src/uploads/";
+var imageDir = "/home/sairam/Desktop/chemnitz/C/ChemnitzHackt2017/src/uploads/";
 
+var coordinates = []
 
 function between(x, min, max) {
     return x >= min && x <= max;
@@ -50,7 +51,7 @@ app.get("/home", function(req, res) {
     res.sendFile(__dirname + '/src/index.html');
 });
 
-app.get("/upload_image", function(req, res) {
+app.get("/upload", function(req, res) {
     res.sendFile(__dirname + '/src/upload.html');
 });
 
@@ -58,9 +59,6 @@ app.get("/settings", function(req, res) {
     res.sendFile(__dirname + '/src/settings.html');
     //res.redirect('/upload_image');
 });
-
-
-
 
 
 
@@ -74,68 +72,93 @@ app.post('/uploadImage', function(req, res) {
     form.parse(req, function(err, fields, files) {
 
     });
-    form.on('end', function() {
-        res.end('success');
-
-    });
-
+    
     form.on('file', function(field, file) {
-        // Temporary location of uploaded file 
+            // Temporary location of uploaded file 
 
-        //console.log(field, file);
-        files.push(file);
-        console.log(file.path);
-        console.log('in upload')
-        console.log(files.length)
-        console.log(files)
-        //for (var img = 0; img < files.length; img++) {
-        var temp_path = file.path;
-        console.log('here1')
-        console.log(temp_path)
-        //The file name of the uploaded file 
-        console.log('here2')
-        var file_name = file.name;
-        console.log('here3')
-        console.log(file_name)
-        // Location where we want to copy the uploaded file
-        var new_location = imageDir;
-        fs.copy(temp_path, new_location + file_name, function(err) {
-            if (err) {
-                console.error(err);
-            } else {
-                console.log("success!", new_location + file_name)
-                var image_name=new_location + file_name
+            //console.log(field, file);
+            files.push(file);
+            console.log(file.path);
+            console.log('in upload')
+            console.log(files.length)
+            console.log(files)
+            //for (var img = 0; img < files.length; img++) {
+            var temp_path = file.path;
+            console.log('here1')
+            console.log(temp_path)
+            //The file name of the uploaded file 
+            console.log('here2')
+            var file_name = file.name;
+            console.log('here3')
+            console.log(file_name)
+            // Location where we want to copy the uploaded file
+            var new_location = imageDir;
+            fs.copy(temp_path, new_location + file_name, function(err) {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                        console.log("success!", new_location + file_name)
+                        var image_name = new_location + file_name
 
-                try {
-                    console.log('received getGps');
+                        try {
+                            console.log('received getGps');
 
-                    new ExifImage({ image: image_name }, function(error, exifData) {
-                        if (error)
-                            console.log('Error: ' + error.message);
-                        else
-                            console.log(exifData);
+                            new ExifImage({ image: image_name }, function(error, exifData) {
+                                    if (error) {
+                                        console.log('Error: ' + error.message);
+                                        var image = "png"
+                                    } else {
+                                        console.log(exifData);
+                                    }
 
-                        var lat = exifData.gps.GPSLatitude;
-                        var lon = exifData.gps.GPSLongitude;
+                                    if (!image) {
+                                        var lat = exifData.gps.GPSLatitude;
+                                        var lon = exifData.gps.GPSLongitude;
+                                        var datetime = exifData.exif.DateTimeOriginal
 
-                        var latRef = exifData.gps.GPSLatitudeRef || "N";
-                        var lonRef = exifData.gps.GPSLongitudeRef || "W";
-                        lat = (lat[0] + lat[1] / 60 + lat[2] / 3600) * (latRef == "N" ? 1 : -1);
-                        lon = (lon[0] + lon[1] / 60 + lon[2] / 3600) * (lonRef == "W" ? -1 : 1);
-                        console.log(lat, lon);
-                    });
-                } catch (error) {
-                    console.log('Error: ' + error.message);
+                                        var latRef = exifData.gps.GPSLatitudeRef || "N";
+                                        var lonRef = exifData.gps.GPSLongitudeRef || "W";
+                                        lat = (lat[0] + lat[1] / 60 + lat[2] / 3600) * (latRef == "N" ? 1 : -1);
+                                        lon = (lon[0] + lon[1] / 60 + lon[2] / 3600) * (lonRef == "W" ? -1 : 1);
+
+                                        var lat_long_time = {
+                                            latitude: lat,
+                                            longitude: lon,
+                                            dateTime: datetime,
+                                            imageName:file_name
+                                        };
+                                        coordinates.push(lat_long_time)
+    									console.log(coordinates)
+    									res.end(JSON.stringify(coordinates))
+
+                                } else {
+                                    console.log("No gps coordinates available for the image")
+                                }
+                            });
+                    } catch (error) {
+                        console.log('Error: ' + error.message);
+                    }
+
+
                 }
-
-
-            }
-        });
+            });
         // }
-    });
-    res.setHeader("Content-Type", "text/html");
-    res.redirect('/upload_image');
+    }); 
+    //res.redirect('/upload_image');
 });
+
+
+
+
+app.get("/getMapCoordinates", function(req, res) {
+    res.json(coordinates)
+});
+
+
+
+
+
+
 
 app.get("/upload_showImageList", function(req, res, next) {
     getImages(imageDir, function(err, files) {
@@ -173,14 +196,6 @@ app.delete("/deleteImage/:id", function(req, res) {
 });
 
 /******************Upload Image End**************************/
-
-
-
-app.get("/getGps", function(req, res) {
-
-
-});
-
 
 
 

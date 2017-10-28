@@ -10,9 +10,38 @@
     <link href="bootstrap/dist/css/bootstrap-theme.css" rel="stylesheet" />
     <script src="bootstrap/dist/js/jquery-3.0.0.min.js"></script>
     <script src="bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="javascripts/uploader_image.js"></script>
-    <script src="javascripts/uploader_waveform.js"></script>
+    <script src="javascript/uploader_image.js"></script>
     <script src="bootstrap/dist/js/jquery-3.0.0.min.js"></script>
+    <script>
+    function myMap() {
+
+       $.ajax({
+        url: '/getMapCoordinates',
+        type: "GET",
+        cache: false,
+        async: "true",
+        complete: function(data) {
+            console.log('received GetMapCoordinates');
+            var chemnitz = { lat: 50.8278, lng: 12.9214 };
+            var map = new google.maps.Map(document.getElementById('googleMap'), {
+                zoom: 10,
+                center: chemnitz
+            });
+            //console.log(data)
+            console.log(data.responseJSON)
+            var locations = data.responseJSON
+            for (i = 0; i < locations.length; i++) {
+                marker = new google.maps.Marker({
+                    position: new google.maps.LatLng(locations[i].latitude, locations[i].longitude),
+                    map: map
+                });
+            }
+        }
+    });
+    }
+    
+    </script>
+
     <link rel="stylesheet" type="text/css" href="stylesheet.css" />
 </head>
 <!-- NAVBAR
@@ -31,7 +60,7 @@
                             <span class="icon-bar"></span>
                         </button>
                         <a class="navbar-brand" href="home">
-                            <img src="./assets/broom.png" alt="">
+                            <img src="./assets/brooms.png" alt="">
                         </a>
                     </div>
                     <div id="navbar" class="navbar-collapse collapse">
@@ -59,15 +88,19 @@
                     </div>
                     <input id="upload-input_image" type="file" name="uploads_image[]" multiple="multiple" accept="image/jpeg, image/png">
                     </br>
+                    <div class=" col-xs-12 col-md-6  ">
+                        <h2>Location</h2>
+                        <div id="googleMap" style="width:100%;height:400px;"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <script src="bootstrap/dist/js/jquery-3.0.0.min.js"></script>
     <script src="bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="javascripts/uploader_image.js"></script>
-    <script src="javascripts/uploader_waveform.js"></script>
+    <script src="javascript/uploader_image.js"></script>
     <script src="bootstrap/dist/js/jquery-3.0.0.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBc_oH-6F7bP7S8VfNErMipPKE2figQDDw&callback=myMap"></script>
 </body>
 
 </html>
