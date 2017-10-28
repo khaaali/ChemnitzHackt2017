@@ -20,7 +20,7 @@ var exec = require('child_process').exec;
 var _ = require('lodash');
 app.use(bodyParser.urlencoded({ extended: false }))
 var ExifImage = require('exif').ExifImage;
-
+var moment = require("moment")
 
 
 /* Image directories used for uploding and retrieving images */
@@ -114,7 +114,7 @@ app.post('/uploadImage', function(req, res) {
                                     if (!image) {
                                         var lat = exifData.gps.GPSLatitude;
                                         var lon = exifData.gps.GPSLongitude;
-                                        var datetime = exifData.exif.DateTimeOriginal
+                                        var dateTime = exifData.exif.DateTimeOriginal
 
                                         var latRef = exifData.gps.GPSLatitudeRef || "N";
                                         var lonRef = exifData.gps.GPSLongitudeRef || "W";
@@ -124,11 +124,15 @@ app.post('/uploadImage', function(req, res) {
                                         var lat_long_time = {
                                             latitude: lat,
                                             longitude: lon,
-                                            dateTime: datetime,
+                                            datetime: dateTime,
                                             imageName:file_name
                                         };
                                         coordinates.push(lat_long_time)
     									console.log(coordinates)
+
+    									sendMail(lat,lon,dateTime,file_name)
+
+
     									res.end(JSON.stringify(coordinates))
 
                                 } else {
@@ -240,6 +244,69 @@ function getImages(imageDir, callback) {
         callback(err, files);
     });
 }
+
+function sendMail(lat, lon, dateTime, imageName) {
+
+  
+  var time_now = moment().format('YYYY-MM-DD HH:mm:ss')
+
+  var mailer = require("nodemailer");
+  var Transport = mailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: "astrose.enas@gmail.com",
+      pass: "sairamaaaa4"
+    }
+  });
+
+
+  subject = "Garbage Notifications";
+
+  content =
+    "<h1 align='center'><font color='#008b46'> Garbage Notification </font></h1>" + "<br>" 
+
+    +
+    "<h3 align='left' >Latitude:" + " " + "</h3>" + lat +
+    "<br>" +
+    "<h3 align='left' >Longitude:" + " " + "</h3>" + lon +
+    "<br>" +
+    "<h3 align='left' >Date and Time:" + " " + "</h3>" + dateTime +
+    "<br>" +
+    "<h3 align='left' >Image Name:" + " " + "</h3>" + imageName +
+    "<br>"
+
+  //console.log(content);
+
+  var mail = {
+    from: "astrose.enas@gmail.com",
+    to: "rayapativenkat.crr@gmail.com",
+    subject: subject,
+    text: "Garbage Notifications",
+    html: content
+  }
+
+   
+  Transport.sendMail(mail, function(error, response) {
+     if (error) {
+       console.log(error);
+     } else {
+       console.log("Message sent: ");
+     }
+     Transport.close();
+   });
+   
+  console.log('The answer to life, the universe, and everything!', mail);
+}
+
+
+
+
+
+
+
+
+
+
 
 
 // redirects page to upload_image.html
