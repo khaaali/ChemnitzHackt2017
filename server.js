@@ -270,29 +270,36 @@ function sendMail(lat, lon, dateTime, imageName) {
   });
 
 
-  subject = "Garbage Notifications";
+  subject = "Cleaning Notifications";
 
   content =
-    "<h1 align='center'><font color='#008b46'> Garbage Notification </font></h1>" + "<br>" 
+    "<h1 align='center'><font color='#008b46'> Cleaning Notification </font></h1>" + "<br>" 
 
     +
     "<h3 align='left' >Latitude:" + " " + "</h3>" + lat +
     "<br>" +
     "<h3 align='left' >Longitude:" + " " + "</h3>" + lon +
     "<br>" +
-    "<h3 align='left' >Date and Time:" + " " + "</h3>" + dateTime +
+    "<h3 align='left' >Time stamp of Picture taken:" + " " + "</h3>" + dateTime +
     "<br>" +
     "<h3 align='left' >Image Name:" + " " + "</h3>" + imageName +
-    "<br>"
+    "<br>"+
+    "<h3 align='left' > Please find the attachments for the corresponding image</h3>"
 
   //console.log(content);
-
+  var img = require("fs").readFileSync(imageDir+imageName);
+  var cat = "...base64 encoded image...";
   var mail = {
     from: "astrose.enas@gmail.com",
     to: "rayapativenkat.crr@gmail.com",
+    //to: "sairamaaaa@gmail.com",
     subject: subject,
-    text: "Garbage Notifications",
-    html: content
+    text: "Cleaning Notifications",
+    html: content,
+    attachments: [{
+        filename: imageName,    
+        content: fs.createReadStream(imageDir+imageName)
+    }]
   }
 
    
